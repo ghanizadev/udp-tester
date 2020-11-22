@@ -99,6 +99,10 @@ const createWindow = (): void => {
   Application.addEventListener("alert", (type, message) => {
     mainWindow.webContents.send("alert", type, message);
   });
+
+  Application.addEventListener("sent-message", (message, address, port) => {
+    mainWindow.webContents.send("sent-message", message, address, port);
+  });
 };
 
 ipcMain.on("send", (event, msg: string, address: string, port: number) => {

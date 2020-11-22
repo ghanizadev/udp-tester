@@ -1,39 +1,97 @@
 import "bootstrap";
-import "./index.css";
+import "../public/index.css";
 import { ipcRenderer } from "electron";
 
+//#region Elements Cache
 const alert = document.querySelector("#alert");
+
+const sentMessageBox = document.querySelector<HTMLDivElement>("div#sent-area");
 
 const bindButton = document.querySelector<HTMLButtonElement>("button#bind");
 const bindAddress = document.querySelector<HTMLInputElement>("input#bind-address");
 const bindPort = document.querySelector<HTMLInputElement>("input#bind-port");
 
-const bindConnect = () => {
-  const address = bindAddress.value;
-  const port = bindPort.value;
+const clientASCII = document.querySelector<HTMLInputElement>("input#client-ascii");
+const clientHEX = document.querySelector<HTMLInputElement>("input#client-hex");
+const clientBase64 = document.querySelector<HTMLInputElement>("input#client-base64");
+const clientPayload = document.querySelector<HTMLTextAreaElement>("textarea#message")
+const clientSendButton = document.querySelector<HTMLButtonElement>("button#send");
 
+const clientForm = document.forms.namedItem("client-form");
+const serverForm = document.forms.namedItem("server-form");
+//#endregion
+
+//#region Global variables
+let previousEncoding : BufferEncoding = "ascii";
+//#endregion
+
+//#region Methods
+const getBody = (form: HTMLFormElement) => {
+  const body: any = {};
+
+  for (let i = 0; i < form.elements.length; i++) {
+    const element = form.elements[i];
+
+    switch (element.tagName.toLowerCase()) {
+      case "textarea":
+        {
+          const e = element as HTMLTextAreaElement;
+          body[e.name] = e.value;
+        }
+        break;
+      case "input":
+        {
+          const e = element as HTMLInputElement;
+
+          if (e.type === "radio") {
+            if (e.checked) body[e.name] = e.value;
+          } else body[e.name] = e.value;
+        }
+        break;
+    }
+  }
+  return body;
+};
+
+const changeClientFormat = (event : any) => {
+  const input = event.target;
+  if(!input.checked) return;
+  const e = document.querySelector<HTMLTextAreaElement>("textarea#message");
+
+  const result = input.value;
+
+  switch (result) {
+    case "hex":
+      e.value = Buffer.from(e.value, previousEncoding).toString("hex");
+      previousEncoding = "hex";
+      break;
+    case "base64":
+      e.value = Buffer.from(e.value, previousEncoding).toString("base64");
+      previousEncoding = "base64";
+      break;
+    case "ascii":
+      e.value = Buffer.from(e.value, previousEncoding).toString("utf8");
+      previousEncoding = "utf8";
+      break;
+    default:
+      break;
+  }
+};
+
+const bindConnect = () => {
+  const { port, address } = getBody(serverForm);
   ipcRenderer.send("bind", Number(port), address);
-}
+};
 
 const bindDisconnect = () => {
   ipcRenderer.send("unbind");
-}
+};
+//#endregion
 
-document.querySelector("button#send").addEventListener("click", () => {
-  const address = (document.querySelector("input#address") as HTMLInputElement)
-    .value;
-  const port = (document.querySelector("input#port") as HTMLInputElement).value;
-  const message = (document.querySelector(
-    "textarea#message"
-  ) as HTMLTextAreaElement).value;
-  const sent = document.querySelector("div#sent-area") as HTMLDivElement;
-
-  ipcRenderer.send("send", message, address, Number(port));
-
-  sent.innerHTML += `[${address}:${port} @${new Date().toISOString()}] ${message}</br>`;
+//#region Event listeners
+ipcRenderer.on("sent-message", (event, message, address, port) => {
+  sentMessageBox.innerHTML += `[${address}:${port} @${new Date().toISOString()}] ${message}</br>`;
 });
-
-bindButton.addEventListener("click", bindConnect);
 
 ipcRenderer.on("server-opened", () => {
   bindButton.classList.remove("btn-primary");
@@ -47,7 +105,6 @@ ipcRenderer.on("server-opened", () => {
   bindButton.addEventListener("click", bindDisconnect);
 });
 
-
 ipcRenderer.on("server-closed", () => {
   bindButton.classList.remove("btn-danger");
   bindButton.classList.add("btn-primary");
@@ -59,18 +116,6 @@ ipcRenderer.on("server-closed", () => {
   bindButton.removeEventListener("click", bindDisconnect);
   bindButton.addEventListener("click", bindConnect);
 });
-
-document
-  .querySelector("textarea#message")
-  .addEventListener("keyup", (event) => {
-    const element = event.target as HTMLTextAreaElement;
-    const count = element.value.length;
-    (document.querySelector(
-      "small#count"
-    ) as HTMLElement).innerText = `count ${count} (${
-      new TextEncoder().encode(element.value).length
-    } bytes)`;
-  });
 
 ipcRenderer.on("about", () => {
   const element = document.querySelector<HTMLButtonElement>(
@@ -141,3 +186,26 @@ ipcRenderer.on("alert", (event, type, message) => {
 
   alert.appendChild(wrapper);
 });
+//#endregion
+
+//#region Document Listeners
+clientASCII.addEventListener("change", changeClientFormat);
+
+clientHEX.addEventListener("change", changeClientFormat);
+
+clientBase64.addEventListener("change", changeClientFormat);
+
+clientPayload.addEventListener("keyup", (event) => {
+  const element = event.target as HTMLTextAreaElement;
+  const count = Buffer.from(element.value).length;
+  const counting = `count ${count} (${new TextEncoder().encode(element.value).length} bytes)`;
+  document.querySelector<HTMLElement>("small#count").innerText = counting;
+});
+  
+clientSendButton.addEventListener("click", () => {
+  const { payload, address, port } = getBody(clientForm);
+  ipcRenderer.send("send", payload, address, Number(port));
+});
+
+bindButton.addEventListener("click", bindConnect);
+//#endregion

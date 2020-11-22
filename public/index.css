@@ -33,6 +33,17 @@ main {
   position: relative;
 }
 
+.panel {
+  padding: 5px;
+  margin: 8px 0;
+  border: 1px solid lightgray;
+  position: relative;
+}
+
+.panel label {
+  font-size: 10pt;
+}
+
 .client-box {
   margin-left: 15px;
 }

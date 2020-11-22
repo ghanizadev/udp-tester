@@ -33,8 +33,6 @@
       integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s"
       crossorigin="anonymous"
     ></script>
-
-    <link rel="stylesheet" href="./index.css" />
   </head>
   <body>
     <main>
@@ -42,7 +40,7 @@
 
       <div class="row">
         <!-- Client -->
-        <div class="col client-box input-wrapper">
+        <form class="col client-box input-wrapper" name="client-form">
           <div class="row">
             <div class="col">
               <div class="input-group input-group-sm mb-3">
@@ -57,6 +55,7 @@
                   placeholder="localhost"
                   value="localhost"
                   id="address"
+                  name="address"
                   aria-label="Host"
                   aria-describedby="localhost-input"
                 />
@@ -71,6 +70,7 @@
                   placeholder="2222"
                   value="2222"
                   id="port"
+                  name="port"
                   aria-label="Port"
                   aria-describedby="Port"
                 />
@@ -87,8 +87,43 @@
               aria-label="Payload"
               rows="3"
               style="resize: none"
+              name="payload"
             ></textarea>
           </div>
+          <div class="panel">
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="format"
+                id="client-ascii"
+                value="ascii"
+                checked
+              />
+              <label class="form-check-label" for="ascii">ASCII</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="format"
+                id="client-hex"
+                value="hex"
+              />
+              <label class="form-check-label" for="hex">HEX</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="format"
+                id="client-base64"
+                value="base64"
+              />
+              <label class="form-check-label" for="binary">Base 64</label>
+            </div>
+          </div>
+
           <small id="count" class="my-2">count: 0</small>
           <div class="d-flex w-100 justify-content-end">
             <button
@@ -99,10 +134,10 @@
               Send
             </button>
           </div>
-        </div>
+        </form>
 
         <!-- Server -->
-        <div class="col server-box input-wrapper">
+        <form class="col server-box input-wrapper" name="server-form">
           <div class="row">
             <div class="col">
               <div class="input-group input-group-sm mb-3">
@@ -117,6 +152,7 @@
                   placeholder="localhost"
                   value="localhost"
                   id="bind-address"
+                  name="address"
                   aria-label="Host"
                   aria-describedby="localhost-input"
                 />
@@ -131,6 +167,7 @@
                   placeholder="2223"
                   value="2223"
                   id="bind-port"
+                  name="port"
                   aria-label="Port"
                   aria-describedby="Port"
                 />
@@ -142,7 +179,7 @@
               Bind
             </button>
           </div>
-        </div>
+        </form>
       </div>
 
       <div class="row d-flex flex-column flex-fill">
