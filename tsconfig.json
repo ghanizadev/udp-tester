@@ -10,6 +10,7 @@
     "outDir": "dist",
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "typeRoots": ["node_modules/@types", "jquery"],
     "paths": {
       "*": ["node_modules/*"]
     }
